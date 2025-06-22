@@ -3,6 +3,7 @@
 
 ## Table of Contents
 - [User Registration](#user-registration)
+- [User Login](#user-login)
 - [Other Endpoints](#other-endpoints)
 
 
@@ -71,6 +72,75 @@ Send a JSON object with the following structure:
 - The JWT token can be used for authenticated requests.
 - Email must be unique; duplicate emails will result in an error.
 - All fields are required except `fullname.lastname`.
+
+---
+
+## User Login
+
+### Endpoint
+`POST /user/login`
+
+Authenticates a user and returns a JWT token upon successful login.
+
+### Description
+This endpoint allows an existing user to log in using their email and password. If the credentials are valid, a JWT authentication token and the user object are returned.
+
+### Request Body
+Send a JSON object with the following structure:
+
+```
+{
+  "email": "john.doe@example.com",
+  "password": "yourpassword123"
+}
+```
+
+#### Validation Rules
+- `email`: Required, must be a valid email
+- `password`: Required
+
+### Response
+#### Success (200 OK)
+```
+{
+  "token": "<jwt_token>",
+  "user": {
+    "_id": "<user_id>",
+    "fullname": {
+      "firstName": "John",
+      "lastName": "Doe"
+    },
+    "email": "john.doe@example.com"
+    // ...other user fields
+  }
+}
+```
+
+#### Error (400 Bad Request)
+```
+{
+  "error": [
+    {
+      "msg": "Invalid value",
+      "param": "email",
+      "location": "body"
+    },
+    // ...other validation errors
+  ]
+}
+```
+
+#### Error (401 Unauthorized)
+```
+{
+  "error": "Invalid email or password"
+}
+```
+
+### Notes
+- The password is never returned in the response.
+- The JWT token can be used for authenticated requests.
+- Both email and password are required for login.
 
 ---
 

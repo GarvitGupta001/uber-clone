@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: [true, "Password is required"],
-        select: false
+        select: false,
     },
     sockeID: {
         type: String,
@@ -29,17 +29,17 @@ const userSchema = new mongoose.Schema({
     }
 })
 
-userSchema.methods.generateAuthToken = () => {
-    const token = jwt.sign({id: this._id}, process.env.JWT_SECRET)
+userSchema.methods.generateAuthToken = function () {
+    const token = jwt.sign({ id: this._id }, process.env.JWT_SECRET)
     return token
 }
 
-userSchema.methods.comparePassword = async (password) => {
+userSchema.methods.comparePassword = async function (password) {
     const result = await bcrypt.compare(password, this.password)
     return result
 }
 
-userSchema.statics.hashPassword = async (password) => {
+userSchema.statics.hashPassword = async function (password) {
     const hashed = await bcrypt.hash(password, 10)
     return hashed
 }
