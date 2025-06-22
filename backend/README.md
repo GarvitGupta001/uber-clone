@@ -4,6 +4,8 @@
 ## Table of Contents
 - [User Registration](#user-registration)
 - [User Login](#user-login)
+- [User Profile](#user-profile)
+- [User Logout](#user-logout)
 - [Other Endpoints](#other-endpoints)
 
 
@@ -141,6 +143,82 @@ Send a JSON object with the following structure:
 - The password is never returned in the response.
 - The JWT token can be used for authenticated requests.
 - Both email and password are required for login.
+
+---
+
+## User Profile
+
+### Endpoint
+`GET /user/profile`
+
+Returns the authenticated user's profile information.
+
+### Description
+This endpoint retrieves the profile details of the currently authenticated user. The request must include a valid JWT token in the `Authorization` header or as a cookie.
+
+### Request Headers
+- `Authorization: Bearer <jwt_token>` (or cookie named `token`)
+
+### Response
+#### Success (200 OK)
+```
+{
+  "user": {
+    "_id": "<user_id>",
+    "fullname": {
+      "firstName": "John",
+      "lastName": "Doe"
+    },
+    "email": "john.doe@example.com"
+    // ...other user fields
+  }
+}
+```
+
+#### Error (401 Unauthorized)
+```
+{
+  "error": "Unauthorised access"
+}
+```
+
+### Notes
+- Requires authentication via JWT token.
+- The password is never returned in the response.
+
+---
+
+## User Logout
+
+### Endpoint
+`GET /user/logout`
+
+Logs out the authenticated user by blacklisting the current JWT token.
+
+### Description
+This endpoint logs out the currently authenticated user by invalidating their JWT token (e.g., by adding it to a blacklist). The request must include a valid JWT token in the `Authorization` header or as a cookie.
+
+### Request Headers
+- `Authorization: Bearer <jwt_token>` (or cookie named `token`)
+
+### Response
+#### Success (200 OK)
+```
+{
+  "message": "Successfully logged out"
+}
+```
+
+#### Error (401 Unauthorized)
+```
+{
+  "error": "Unauthorised access"
+}
+```
+
+### Notes
+- Requires authentication via JWT token.
+- The token is blacklisted and cannot be used again.
 
 ---
 
