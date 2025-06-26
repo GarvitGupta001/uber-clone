@@ -1,9 +1,12 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState, useContext } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import LogoHeader from '../components/LogoHeader'
+import axios from 'axios'
+import { UserDataContext } from '../context/userContext'
 
 const UserSignup = () => {
-    const [user, setUser] = useState({
+    const navigate = useNavigate();
+    const [userData, setUserData] = useState({
         fullname: {
             firstname: "",
             lastname: ""
@@ -12,10 +15,17 @@ const UserSignup = () => {
         password: ""
     })
 
+    const { setUser } = useContext(UserDataContext);
+
     const handleSignup = async (e) => {
         e.preventDefault();
-        console.log(user);
-        setUser({ email: "", password: "", fullname: { firstname: "", lastname: "" } });
+        const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/user/register`, userData);
+        if (response.status === 201) {
+            setUser(response.data.user)
+            localStorage.setItem("token", response.data.token);
+            navigate("/home");
+        }
+        setUserData({ email: "", password: "", fullname: { firstname: "", lastname: "" } });
     }
 
     return (
@@ -31,26 +41,26 @@ const UserSignup = () => {
                             required
                             placeholder='First Name'
                             className='bg-[#eeeeee] px-3 py-2 rounded text-base font-medium placeholder:text-sm placeholder:text-gray-400 placeholder:font-medium mb-2 w-[49%]'
-                            value={user.fullname.firstname}
-                            onChange={(e) => setUser({ ...user, fullname: { ...user.fullname, firstname: e.target.value } })} />
+                            value={userData.fullname.firstname}
+                            onChange={(e) => setUserData({ ...userData, fullname: { ...userData.fullname, firstname: e.target.value } })} />
                         <input type="text"
                             placeholder='Last Name'
                             className='bg-[#eeeeee] px-3 py-2 rounded text-base font-medium placeholder:text-sm placeholder:text-gray-400 placeholder:font-medium mb-2 w-[49%]'
-                            value={user.fullname.lastname}
-                            onChange={(e) => setUser({ ...user, fullname: { ...user.fullname, lastname: e.target.value } })} />
+                            value={userData.fullname.lastname}
+                            onChange={(e) => setUserData({ ...userData, fullname: { ...userData.fullname, lastname: e.target.value } })} />
                     </div>
                     <input type="email"
                         required
                         placeholder='user_mail@example.com'
                         className='bg-[#eeeeee] w-full px-3 py-2 rounded text-base font-medium placeholder:text-sm placeholder:text-gray-400 placeholder:font-medium mb-2'
-                        value={user.email}
-                        onChange={(e) => setUser({ ...user, email: e.target.value })} />
+                        value={userData.email}
+                        onChange={(e) => setUserData({ ...userData, email: e.target.value })} />
                     <input type="password"
                         required
                         placeholder='Password'
                         className='bg-[#eeeeee] w-full px-3 py-2 rounded text-base font-medium placeholder:text-sm placeholder:text-gray-400 placeholder:font-medium mb-2'
-                        value={user.password}
-                        onChange={(e) => setUser({ ...user, password: e.target.value })} />
+                        value={userData.password}
+                        onChange={(e) => setUserData({ ...userData, password: e.target.value })} />
                     <button type="submit"
                         className='bg-black text-white px-4 py-2 rounded w-full active:bg-gray-800'>Sign Up</button>
                 </form>

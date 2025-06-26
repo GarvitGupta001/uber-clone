@@ -7,7 +7,6 @@ const CaptainLogin = () => {
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        console.log(captain);
         setCaptain({ ...captain, email: "", password: "" });
     }
 
