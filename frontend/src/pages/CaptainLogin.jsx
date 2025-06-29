@@ -1,13 +1,23 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import LogoHeader from '../components/LogoHeader'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import { CaptainDataContext } from '../context/CaptainContext'
 
 const CaptainLogin = () => {
-    const [captain, setCaptain] = useState({ email: "", password: "" })
+    const [captainData, setCaptainData] = useState({ email: "", password: "" })
+    const navigate = useNavigate()
+    const { setCaptain } = useContext(CaptainDataContext)
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        setCaptain({ ...captain, email: "", password: "" });
+        const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/captain/login`, captainData);
+        if (response.status === 200) {
+            localStorage.setItem("token", response.data.token);
+            setCaptain(response.data.captain);
+            navigate("/captain-home");
+        }
+        setCaptainData({ ...captainData, email: "", password: "" });
     }
 
     return (
@@ -22,14 +32,14 @@ const CaptainLogin = () => {
                         required
                         placeholder='captain_mail@example.com'
                         className='bg-[#eeeeee] w-full px-3 py-2 rounded text-base font-medium placeholder:text-sm placeholder:text-gray-400 placeholder:font-medium mb-2'
-                        value={captain.email}
-                        onChange={(e) => setCaptain({ ...captain, email: e.target.value })} />
+                        value={captainData.email}
+                        onChange={(e) => setCaptainData({ ...captainData, email: e.target.value })} />
                     <input type="password"
                         required
                         placeholder='Password'
                         className='bg-[#eeeeee] w-full px-3 py-2 rounded text-base font-medium placeholder:text-sm placeholder:text-gray-400 placeholder:font-medium mb-2'
-                        value={captain.password}
-                        onChange={(e) => setCaptain({ ...captain, password: e.target.value })} />
+                        value={captainData.password}
+                        onChange={(e) => setCaptainData({ ...captainData, password: e.target.value })} />
                     <button type="submit"
                         className='bg-black text-white px-4 py-2 rounded w-full active:bg-gray-800'
                         >Login</button>
@@ -39,7 +49,7 @@ const CaptainLogin = () => {
                 </p>
             </div>
             <div className='text-center'>
-                <Link to="/login">
+                <Link to="/user-login">
                     <button className='bg-yellow-600 active:bg-yellow-800 text-white px-4 py-2 rounded w-full inline-block'>Login as User</button>
                 </Link>
             </div>

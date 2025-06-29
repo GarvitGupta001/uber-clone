@@ -8,7 +8,7 @@ const Landing = () => {
             <LogoHeader />
             <div className='bg-white w-screen flex flex-col justify-start items-center gap-4 p-4'>
                 <h2 className='font-bold text-2xl'>Get Started with Uber</h2>
-                <Link to='/login' className='bg-black text-white px-4 py-2 w-full text-center rounded-sm'>
+                <Link to='/user-login' className='bg-black text-white px-4 py-2 w-full text-center rounded-sm'>
                     Continue
                 </Link>
             </div>

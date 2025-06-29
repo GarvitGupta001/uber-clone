@@ -23,7 +23,7 @@ const UserSignup = () => {
         if (response.status === 201) {
             setUser(response.data.user)
             localStorage.setItem("token", response.data.token);
-            navigate("/home");
+            navigate("/user-home");
         }
         setUserData({ email: "", password: "", fullname: { firstname: "", lastname: "" } });
     }
@@ -65,7 +65,7 @@ const UserSignup = () => {
                         className='bg-black text-white px-4 py-2 rounded w-full active:bg-gray-800'>Sign Up</button>
                 </form>
                 <p className='text-center'>
-                    Already have an account? <Link to="/login" className='text-blue-700 active:text-violet-900'>Log in</Link>
+                    Already have an account? <Link to="/user-login" className='text-blue-700 active:text-violet-900'>Log in</Link>
                 </p>
             </div>
         </div>

@@ -15,7 +15,7 @@ const UserLogin = () => {
         if (response.status === 200) {
             setUser(response.data.user);
             localStorage.setItem("token", response.data.token);
-            navigate("/home");
+            navigate("/user-home");
         }
         setUserData({ ...userData, email: "", password: "" });
     }
@@ -43,7 +43,7 @@ const UserLogin = () => {
                         className='bg-black text-white px-4 py-2 rounded w-full active:bg-gray-800'>Login</button>
                 </form>
                 <p className='text-center'>
-                    Don't have an account? <Link to="/signup" className='text-blue-700 active:text-violet-900'>Sign up</Link>
+                    Don't have an account? <Link to="/user-signup" className='text-blue-700 active:text-violet-900'>Sign up</Link>
                 </p>
             </div>
             <div className='text-center'>

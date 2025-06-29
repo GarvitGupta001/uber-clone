@@ -29,7 +29,7 @@ const CaptainSignup = () => {
     if (response.status === 201) {
       localStorage.setItem("token", response.data.token);
       setCaptain(response.data.captain);
-      navigate("/home");
+      navigate("/captain-home");
     }
     setCaptainData({ email: "", password: "", fullname: { firstname: "", lastname: "" }, vehicle: { color: "", number: "", type: "", capacity: "" } });
   }

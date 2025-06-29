@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import Loader from '../components/Loader'
 
 const UserLogout = () => {
     const navigate = useNavigate();
@@ -13,7 +14,7 @@ const UserLogout = () => {
         })
         if (response.status === 200) {
             localStorage.removeItem("token");
-            navigate("/login");
+            navigate("/user-login");
         }
     }
     useEffect(() => {
@@ -24,7 +25,7 @@ const UserLogout = () => {
 
 
     return (
-        <div>UserLogout</div>
+        <Loader />
     )
 }
 
