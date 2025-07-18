@@ -17,7 +17,7 @@ connect()
 
 app.use(morgan('dev'))
 app.use(cors({
-    origin: 'https://uber-clone-xi-bay.vercel.app',
+    origin: ['https://uber-clone-indol-gamma.vercel.app', 'http://localhost:5173'],
     credentials: true
 }))
 app.use(express.json())

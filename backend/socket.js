@@ -8,7 +8,7 @@ let io
 module.exports.initialiseSocketIO = (server) => {
     io = socketIO(server, {
         cors: {
-            origin: 'https://uber-clone-xi-bay.vercel.app'
+            origin: ['https://uber-clone-indol-gamma.vercel.app', 'http://localhost:5173']
         },
         methods: ['GET', 'POST'],
         credentials: true
