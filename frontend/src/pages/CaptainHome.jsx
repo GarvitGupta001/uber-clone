@@ -172,7 +172,7 @@ const CaptainHome = () => {
   }, [captain._id, socket]);
 
   return (
-    <div className='h-[100vh] bg-[url("map_bg.png")] bg-cover bg-no-repeat bg-top flex flex-col justify-between'>
+    <div className='h-[100vh] bg-[url("/map_bg.png")] bg-cover bg-no-repeat bg-top flex flex-col justify-between'>
       <div className='flex justify-between items-center'>
         <LogoHeader />
         <Link to="/captain-logout">
