@@ -81,10 +81,9 @@ const UserRiding = () => {
 
 
     return (
-        <div className='h-[100vh] bg-[url("map_bg.gif")] bg-cover bg-no-repeat bg-top flex flex-col justify-between'>
+        <div className='h-[100vh] bg-[url("map_bg.png")] bg-cover bg-no-repeat bg-top flex flex-col justify-between'>
             <LogoHeader />
             <div>
-                <LogoHeader />
                 <div
                     className='bg-white rounded-t-2xl shadow-[0px_-5px_52px_2px_rgba(0,0,0,0.49)] flex flex-col gap-4 overflow-y-hidden p-4 pb-8'>
                     <h2 className='text-xl font-semibold w-full text-center'>Enjoy your ride!</h2>
