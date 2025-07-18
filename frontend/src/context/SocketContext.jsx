@@ -1,9 +1,7 @@
 import React, { createContext, useEffect } from 'react'
 import { io } from 'socket.io-client'
 
-const socket = io(`${import.meta.env.VITE_BASE_URL}`, {
-    transports: ['polling']
-})
+const socket = io(`${import.meta.env.VITE_BASE_URL}`)
 
 export const SocketDataContext = createContext()
 
