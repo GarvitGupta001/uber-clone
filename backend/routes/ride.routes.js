@@ -36,7 +36,7 @@ router.post('/start',
     rideController.startRide
 )
 
-router.post('/complete',
+router.post('/finish',
     body('rideId').isString(),
     authMiddleware.authCaptain,
     rideController.completeRide

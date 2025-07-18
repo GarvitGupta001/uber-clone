@@ -2,11 +2,13 @@ import React, { useContext, useEffect, useRef, useState } from 'react'
 import LogoHeader from '../components/LogoHeader'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
+import axios from 'axios'
 import { SocketDataContext } from '../context/SocketContext'
 import { CaptainDataContext } from '../context/CaptainContext'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 const CaptainRiding = () => {
+    const navigate = useNavigate()
     const rideInfo = JSON.parse(localStorage.getItem('rideData'))
 
     const [paid, setPaid] = useState(localStorage.getItem('paid') === 'true' ? true : false)
@@ -49,6 +51,23 @@ const CaptainRiding = () => {
             rideId: rideInfo._id
         })
         setConfirmPaymentPopUp(false)
+    }
+
+    const handleFinishRide = async () => {
+        const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/ride/finish`, {
+            rideId: rideInfo._id
+        }, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+        })
+        if (response.data.success) {
+            localStorage.removeItem('rideData')
+            localStorage.removeItem('paid')
+            navigate('/captain-home')
+        } else {
+            alert('Unable to finish ride')
+        }
     }
 
     useEffect(() => {
@@ -99,7 +118,7 @@ const CaptainRiding = () => {
                     {paid ? <button
                         type="button"
                         className='bg-emerald-600 text-white px-4 py-2 rounded w-full active:bg-emerald-800'
-                        onClick={() => { setPaymentConfirmingPopUp(true) }}>Finish Ride</button> : null}
+                        onClick={() => { handleFinishRide() }}>Finish Ride</button> : null}
                 </div>
             </div>
             <div ref={confirmPaymentPopUpRef}

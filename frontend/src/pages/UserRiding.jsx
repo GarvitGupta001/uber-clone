@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import LogoHeader from '../components/LogoHeader'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
@@ -8,6 +8,7 @@ import { UserDataContext } from '../context/UserContext'
 
 
 const UserRiding = () => {
+    const navigate = useNavigate()
     const rideInfo = JSON.parse(localStorage.getItem('rideData'))
 
     const [paid, setPaid] = useState(localStorage.getItem('paid') === 'true' ? true : false)
@@ -58,8 +59,15 @@ const UserRiding = () => {
             localStorage.setItem('paid', true)
         })
 
+        socket.on('rideCompleted', ()=> {
+            localStorage.removeItem('rideData')
+            localStorage.removeItem('paid')
+            navigate('/user-home')
+        })
+
         return () => {
             socket.off('paymentConfirmed')
+            socket.off('rideCompleted')
         }
     }, [socket])
 

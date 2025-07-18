@@ -180,6 +180,29 @@ module.exports.completeRide = async (req, res, next) => {
         })
     }
 
+    const { rideId } = req.body
+
+    try {
+        const ride = await rideService.finishRide(rideId)
+        await ride.populate('user')
+
+        sendMessageToSocket(ride.user.socketID, {
+            event: 'rideCompleted'
+        })
+
+        return res.status(200).json({
+            success: true,
+            message: "Ride completed successfully"
+        })
+    } catch (error) {
+        console.error("Unable to complete ride", error);
+        return res.status(500).json({
+            success: false,
+            error: error.message || error
+        })
+    }
+
+
 }
 
 module.exports.cancelRide = async (req, res, next) => {

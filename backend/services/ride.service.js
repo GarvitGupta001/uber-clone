@@ -121,3 +121,22 @@ module.exports.validateOTP = async (rideId, otp) => {
     await ride.save()
     return ride
 }
+
+module.exports.finishRide = async (rideId) => {
+    if (!rideId) {
+        throw new Error("rideId is required")
+    }
+
+    const ride = await rideModel.findById(rideId)
+    if (!ride) {
+        throw new Error("Ride not found")
+    }
+
+    if (ride.status !== 'ongoing') {
+        throw new Error("Ride is not ongoing")
+    }
+
+    ride.status = 'completed'
+    await ride.save()
+    return ride
+}
