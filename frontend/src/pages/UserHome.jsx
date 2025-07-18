@@ -196,8 +196,6 @@ const UserHome = () => {
     })
   })
 
-
-
   useEffect(() => {
     const updateLocation = () => {
       if (navigator.geolocation) {
