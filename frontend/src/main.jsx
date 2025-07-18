@@ -5,13 +5,16 @@ import './index.css'
 import App from './App.jsx'
 import UserContext from './context/userContext.jsx'
 import CaptainContext from './context/CaptainContext.jsx'
+import SocketContext from './context/SocketContext.jsx'
 
 createRoot(document.getElementById('root')).render(
-    <UserContext>
-      <CaptainContext>
+  <UserContext>
+    <CaptainContext>
+      <SocketContext>
         <BrowserRouter>
           <App />
         </BrowserRouter>
-      </CaptainContext>
-    </UserContext>
+      </SocketContext>
+    </CaptainContext>
+  </UserContext>
 )

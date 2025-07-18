@@ -1,73 +1,69 @@
 import React, { useContext, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import LogoHeader from '../components/LogoHeader'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { SocketDataContext } from '../context/SocketContext'
-import { UserDataContext } from '../context/UserContext'
+import { CaptainDataContext } from '../context/CaptainContext'
+import { Link } from 'react-router-dom'
 
-
-const UserRiding = () => {
+const CaptainRiding = () => {
     const rideInfo = JSON.parse(localStorage.getItem('rideData'))
 
     const [paid, setPaid] = useState(localStorage.getItem('paid') === 'true' ? true : false)
-    const [paymentConfirmingPopUp, setPaymentConfirmingPopUp] = useState(false)
+    const [confirmPaymentPopUp, setConfirmPaymentPopUp] = useState(false)
 
-    const paymentConfirmingPopUpRef = useRef(null)
+    const confirmPaymentPopUpRef = useRef(null)
 
     const { socket } = useContext(SocketDataContext)
-    const { user } = useContext(UserDataContext)
-
+    const { captain } = useContext(CaptainDataContext)
 
     useGSAP(() => {
-        if (paymentConfirmingPopUp) {
+        if (confirmPaymentPopUp) {
             const tl = gsap.timeline()
-            tl.to(paymentConfirmingPopUpRef.current, {
+            tl.to(confirmPaymentPopUpRef.current, {
                 height: '100vh',
                 width: '100vw',
                 display: 'flex',
                 flexDirection: 'column',
-            }).to(paymentConfirmingPopUpRef.current, {
+            }).to(confirmPaymentPopUpRef.current, {
                 opacity: 1,
                 duration: 0.2,
             })
         } else {
             const tl = gsap.timeline()
-            tl.to(paymentConfirmingPopUpRef.current, {
+            tl.to(confirmPaymentPopUpRef.current, {
                 opacity: 0,
                 duration: 0.2,
-            }).to(paymentConfirmingPopUpRef.current, {
+            }).to(confirmPaymentPopUpRef.current, {
                 height: '0vh',
                 width: '0vw',
                 display: 'none',
             })
         }
-    }, [paymentConfirmingPopUp])
+    }, [confirmPaymentPopUp])
 
-    const handleMakePayment = () => {
-        setPaymentConfirmingPopUp(true)
-        socket.emit('makePayment', {
+    const handleRecievePayment = () => {
+        setPaid(true)
+        localStorage.setItem('paid', true)
+        socket.emit('confirmPayment', {
             rideId: rideInfo._id
         })
+        setConfirmPaymentPopUp(false)
     }
 
     useEffect(() => {
-        socket.on('paymentConfirmed', () => {
-            setPaid(true)
-            setPaymentConfirmingPopUp(false)
-            localStorage.setItem('paid', true)
+        socket.on('confirmPayment', () => {
+            setConfirmPaymentPopUp(true)
         })
-
         return () => {
-            socket.off('paymentConfirmed')
+            socket.off('confirmPayment')
         }
     }, [socket])
 
-
     useEffect(() => {
         socket.emit('join', {
-            Id: user._id,
-            type: 'user'
+            Id: captain._id,
+            type: 'captain'
         })
     })
 
@@ -76,16 +72,12 @@ const UserRiding = () => {
         <div className='h-[100vh] bg-[url("map_bg.gif")] bg-cover bg-no-repeat bg-top flex flex-col justify-between'>
             <LogoHeader />
             <div>
-                <LogoHeader />
                 <div
                     className='bg-white rounded-t-2xl shadow-[0px_-5px_52px_2px_rgba(0,0,0,0.49)] flex flex-col gap-4 overflow-y-hidden p-4 pb-8'>
-                    <h2 className='text-xl font-semibold w-full text-center'>Enjoy your ride!</h2>
-                    <div className='flex justify-between items-center'>
-                        <img src={`${rideInfo.vehicle}.webp`} alt={`${rideInfo.vehicle}}`} className='h-20' />
-                        <div>
-                            <h1 className='text-right text-xl font-medium'>{rideInfo?.captain.fullname.firstName} {rideInfo?.captain.fullname.lastName}</h1>
-                            <h3 className='text-2xl font-bold'>{rideInfo?.captain.vehicle.number}</h3>
-                        </div>
+                    <h2 className='text-xl font-semibold w-full text-center'>Ride Started</h2>
+                    <div className='flex justify-between'>
+                        <h3 className='text-2xl font-bold'>{rideInfo?.user?.fullname?.firstName} {rideInfo?.user?.fullname?.lastName}</h3>
+                        <h3 className='text-2xl font-bold'>1.6 km</h3>
                     </div>
                     <div className='flex items-center gap-2'>
                         <div>
@@ -104,22 +96,25 @@ const UserRiding = () => {
                             <h3 className='text-xl font-semibold '>₹{rideInfo?.fare}</h3>
                         </div>
                     </div>
-                    {!paid ? <button
+                    {paid ? <button
                         type="button"
                         className='bg-emerald-600 text-white px-4 py-2 rounded w-full active:bg-emerald-800'
-                        onClick={() => { handleMakePayment() }}>Make Payment</button> : null}
+                        onClick={() => { setPaymentConfirmingPopUp(true) }}>Finish Ride</button> : null}
                 </div>
             </div>
-            <div ref={paymentConfirmingPopUpRef}
-                className='absolute backdrop-blur-md z-10 justify-center items-center h-0 w-0 hidden opacity-0'>
+            <div ref={confirmPaymentPopUpRef}
+                className='absolute backdrop-blur-md z-10 justify-center items-center gap-2 h-0 w-0 hidden opacity-0'>
                 <div className='text-3xl text-center font-semibold'>
-                    Waiting for <br />
-                    captain <br />
-                    to Confirm Payment...
+                    Recieve payment<br />
+                    from the user
                 </div>
+                <button
+                    type="button"
+                    className='bg-emerald-600 text-white px-4 py-2 rounded active:bg-emerald-800'
+                    onClick={() => { handleRecievePayment() }}>Recieved Payment</button>
             </div>
         </div>
     )
 }
 
-export default UserRiding
+export default CaptainRiding

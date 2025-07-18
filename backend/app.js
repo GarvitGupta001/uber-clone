@@ -6,6 +6,8 @@ const morgan = require('morgan')
 const connect = require('./utils/db.utils')
 const userRoutes = require('./routes/user.routes')
 const captainRoutes = require('./routes/captain.routes')
+const mapRoutes = require('./routes/map.routes')
+const rideRoutes = require('./routes/ride.routes')
 
 dotenv.config()
 
@@ -28,5 +30,7 @@ app.get('/', (req, res) => {
 
 app.use('/user', userRoutes)
 app.use('/captain', captainRoutes)
+app.use('/map', mapRoutes)
+app.use('/ride', rideRoutes)
 
 module.exports = app

@@ -1,46 +1,41 @@
-import React, { use, useRef, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import LogoHeader from '../components/LogoHeader'
+import { RiLogoutBoxLine } from '@remixicon/react'
 import 'remixicon/fonts/remixicon.css'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
-import { Link } from 'react-router-dom'
-
-const sampleSuggestions = [
-  { id: 1, name: 'Central Park', address: '5th Ave, New York, NY 10022' },
-  { id: 2, name: 'Empire State Building', address: '20 W 34th St, New York, NY 10001' },
-  { id: 3, name: 'Times Square', address: 'Manhattan, NY 10036' },
-  { id: 4, name: 'Brooklyn Bridge', address: 'Brooklyn Bridge, New York, NY 10038' },
-  { id: 5, name: 'Grand Central Terminal', address: '89 E 42nd St, New York, NY 10017' },
-  { id: 6, name: 'Statue of Liberty', address: 'Liberty Island, New York, NY 10004' },
-  { id: 7, name: 'Metropolitan Museum of Art', address: '1000 5th Ave, New York, NY 10028' },
-  { id: 8, name: 'Rockefeller Center', address: '45 Rockefeller Plaza, New York, NY 10111' },
-  { id: 9, name: 'Madison Square Garden', address: '4 Pennsylvania Plaza, New York, NY 10001' },
-  { id: 10, name: 'Bryant Park', address: 'New York, NY 10018' },
-  { id: 11, name: 'One World Trade Center', address: '285 Fulton St, New York, NY 10007' },
-  { id: 12, name: 'Chrysler Building', address: '405 Lexington Ave, New York, NY 10174' },
-  { id: 13, name: 'The High Line', address: 'New York, NY 10011' },
-  { id: 14, name: 'Museum of Modern Art', address: '11 W 53rd St, New York, NY 10019' },
-  { id: 15, name: 'Yankee Stadium', address: '1 E 161 St, Bronx, NY 10451' }
-]
+import { Link, useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import { SocketDataContext } from '../context/SocketContext'
+import { UserDataContext } from '../context/UserContext'
 
 const UserHome = () => {
-  const [suggestions, setSuggestions] = useState([])
+  const navigate = useNavigate()
+
   const [panelOpen, setPanelOpen] = useState(false)
   const [pickNDropPanel, setPickNDropPanel] = useState(true)
   const [ridePanel, setRidePanel] = useState(false)
   const [driverSearchPanel, setDriverSearchPanel] = useState(false)
+  const [rideConfirmedPanel, setRideConfirmedPanel] = useState(false)
+  const [activeField, setActiveField] = useState('')
   const [pickup, setPickup] = useState('')
   const [destination, setDestination] = useState('')
-  const [rideType, setRideType] = useState('')
-  const [activeField, setActiveField] = useState('')
+  const [suggestions, setSuggestions] = useState([])
+  const [fares, setFares] = useState({})
+  const [vehicleType, SetVehicleType] = useState('')
   const [pickupObject, setPickupObject] = useState(null)
   const [destinationObject, setDestinationObject] = useState(null)
+  const [rideInfo, setRideInfo] = useState(null)
 
   const arrowRef = useRef(null)
   const panelRef = useRef(null)
   const pickNDropRef = useRef(null)
   const selectRideRef = useRef(null)
   const driverSearchRef = useRef(null)
+  const rideConfirmedRef = useRef(null)
+
+  const { socket } = useContext(SocketDataContext)
+  const { user } = useContext(UserDataContext)
 
   useGSAP(() => {
     if (panelOpen) {
@@ -115,9 +110,129 @@ const UserHome = () => {
     }
   }, [driverSearchPanel])
 
+  useGSAP(() => {
+    if (rideConfirmedPanel) {
+      gsap.to(rideConfirmedRef.current, {
+        height: 'auto',
+        padding: '16px 16px 32px 16px',
+        delay: 0.6,
+        duration: 0.5,
+      })
+    } else {
+      gsap.to(rideConfirmedRef.current, {
+        height: '0vh',
+        padding: '0px 16px 0px 16px',
+        duration: 0.5,
+      })
+    }
+  }, [rideConfirmedPanel])
+
+  const updateSuggestions = async (search) => {
+    const token = localStorage.getItem('token')
+    const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/map/suggestions?search=${search}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    const results = response.data.suggestions
+    const formatedResults = results.map((result) => {
+      return {
+        main_text: result.structured_formatting.main_text,
+        secondary_text: result.structured_formatting.secondary_text,
+        place_id: result.place_id
+      }
+    })
+    setSuggestions(formatedResults)
+  }
+
+  const updateFares = async () => {
+    const token = localStorage.getItem('token')
+    const url = `${import.meta.env.VITE_BASE_URL}/ride/fare?pickupPlaceId=${pickupObject.place_id}&destinationPlaceId=${destinationObject.place_id}`
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    setFares(response.data.fares)
+  }
+
+  const createRide = async () => {
+    const token = localStorage.getItem('token')
+    const url = `${import.meta.env.VITE_BASE_URL}/ride/create`
+    const response = await axios.post(url, {
+      pickup: pickupObject, destination: destinationObject, vehicleType: vehicleType
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+  }
+
+  useEffect(() => {
+    socket.on('rideAccepted', (data) => {
+      setRideConfirmedPanel(true)
+      setDriverSearchPanel(false)
+      setRideInfo(data)
+      console.log('Ride accepted by captain:', data);
+    });
+
+    socket.on('rideStarted', (data) => {
+      localStorage.setItem('rideData', JSON.stringify(data))
+      localStorage.setItem('paid', false)
+      navigate('/user-riding')
+    })
+
+    return () => {
+      socket.off('rideAccepted');
+      socket.off('rideStarted')
+    };
+  }, [socket]);
+
+
+  useEffect(() => {
+    socket.emit('join', {
+      Id: user._id,
+      type: 'user'
+    })
+  })
+
+
+
+  useEffect(() => {
+    const updateLocation = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            socket.emit('updateLocation', {
+              Id: user._id,
+              lat: latitude,
+              lng: longitude,
+              type: 'user'
+            });
+          },
+          (error) => {
+            console.error('Error getting location:', error);
+          }
+        );
+      }
+    };
+
+    updateLocation();
+
+    const intervalId = setInterval(updateLocation, 10000);
+
+    return () => clearInterval(intervalId);
+  }, [user._id, socket]);
+
   return (
     <div className='h-[100vh] bg-[url("map_bg.gif")] bg-cover bg-no-repeat bg-top flex flex-col justify-between'>
-      <LogoHeader />
+      <div className='flex justify-between items-center'>
+        <LogoHeader />
+        <Link to="/user-logout">
+          <RiLogoutBoxLine size={50} color='red' className='bg-white mr-5 p-3 rounded-full opacity-70' />
+        </Link>
+      </div>
       <div>
         <div ref={pickNDropRef}
           className='bg-white rounded-t-2xl shadow-[0px_-5px_52px_2px_rgba(0,0,0,0.49)] flex flex-col overflow-y-hidden p-4 pb-8'>
@@ -137,7 +252,7 @@ const UserHome = () => {
                 placeholder="Pickup Location"
                 className='bg-[#eeeeee] w-full px-3 py-2 rounded text-base font-medium placeholder:text-sm placeholder:text-gray-400 placeholder:font-medium mb-2'
                 onClick={() => { setPanelOpen(true); setActiveField('pickup') }}
-                onChange={(e) => { setPickup(e.target.value); setSuggestions(sampleSuggestions); }}
+                onChange={async (e) => { setPickup(e.target.value); await updateSuggestions(e.target.value); }}
               />
               <input
                 type="text"
@@ -145,20 +260,20 @@ const UserHome = () => {
                 placeholder="Destination"
                 className='bg-[#eeeeee] w-full px-3 py-2 rounded text-base font-medium placeholder:text-sm placeholder:text-gray-400 placeholder:font-medium mb-2'
                 onClick={() => { setPanelOpen(true); setActiveField('destination') }}
-                onChange={(e) => { setDestination(e.target.value); setSuggestions(sampleSuggestions); }}
+                onChange={(e) => { setDestination(e.target.value); updateSuggestions(e.target.value) }}
               />
             </div>
             <div className={`flex flex-col h-[0vh] overflow-y-hidden`} ref={panelRef}>
-              <div className='h-full overflow-y-scroll m-1 flex flex-col gap-2'>
-                {suggestions.map((suggestion) => (
+              <div className='h-full overflow-y-scroll m-1 flex flex-col gap-2 overflow-x-hidden'>
+                {suggestions.map((suggestion, index) => (
                   <div className='flex items-center gap-2'
-                    key={suggestion.id}
+                    key={index}
                     onClick={() => {
                       if (activeField === 'pickup') {
-                        setPickup(suggestion.name);
+                        setPickup(suggestion.main_text);
                         setPickupObject(suggestion);
                       } else if (activeField === 'destination') {
-                        setDestination(suggestion.name);
+                        setDestination(suggestion.main_text);
                         setDestinationObject(suggestion);
                       }
                       setSuggestions([]);
@@ -167,8 +282,8 @@ const UserHome = () => {
                       <i className="ri-map-pin-2-fill ri-xl"></i>
                     </div>
                     <div className='flex flex-col justify-center'>
-                      <h3 className='text-base font-semibold '>{suggestion.name}</h3>
-                      <p className='text-sm text-gray-700'>{suggestion.address}</p>
+                      <h3 className='text-base font-semibold'>{suggestion.main_text}</h3>
+                      <p className='text-sm text-gray-700'>{suggestion.secondary_text}</p>
                     </div>
                   </div>
                 ))}
@@ -176,7 +291,7 @@ const UserHome = () => {
               <button
                 type="submit"
                 className='bg-black text-white px-4 py-2 rounded w-full active:bg-gray-800'
-                onClick={() => { setRidePanel(true); setPickNDropPanel(false); setPanelOpen(false) }}>Confirm</button>
+                onClick={() => { updateFares(); setRidePanel(true); setPickNDropPanel(false); setPanelOpen(false) }}>Confirm</button>
             </div>
           </form>
         </div>
@@ -186,17 +301,17 @@ const UserHome = () => {
             <i className="ri-arrow-left-s-line ri-lg" onClick={() => { setRidePanel(false); setPickNDropPanel(true) }}></i>
             <h2 className='text-xl font-semibold'>Select your ride</h2>
           </div>
-          <div className={`${rideType === 'car' ? 'border-black' : 'border-white'} border-2 py-2 flex rounded-xl items-center justify-between`} onClick={() => setRideType('car')}>
+          <div className={`${vehicleType === 'car' ? 'border-black' : 'border-white'} border-2 py-2 flex rounded-xl items-center justify-between`} onClick={() => SetVehicleType('car')}>
             <div className='flex items-center gap-2'>
               <img src="car.webp" alt="car" className='h-13' />
               <div className='flex flex-col justify-center'>
                 <h2 className='text-lg font-medium flex justify-start items-center'>Car <span className='font-medium text-base ml-1'><i className="ri-user-3-fill ri-sm"></i>4</span></h2>
-                <h4 className='text-sm font-medium text-gray-700'>5 min away</h4>
+                <h4 className='text-sm font-medium text-gray-700'>3 min away</h4>
               </div>
             </div>
-            <h2 className='font-medium text-lg p-2'>₹143</h2>
+            <h2 className='font-medium text-lg p-2'>₹{fares.car}</h2>
           </div>
-          <div className={`${rideType === 'bike' ? 'border-black' : 'border-white'} border-2 py-2 flex rounded-xl items-center justify-between`} onClick={() => setRideType('bike')}>
+          <div className={`${vehicleType === 'bike' ? 'border-black' : 'border-white'} border-2 py-2 flex rounded-xl items-center justify-between`} onClick={() => SetVehicleType('bike')}>
             <div className='flex items-center gap-2'>
               <img src="bike.webp" alt="car" className='h-13' />
               <div className='flex flex-col justify-center'>
@@ -204,9 +319,9 @@ const UserHome = () => {
                 <h4 className='text-sm font-medium text-gray-700'>2 min away</h4>
               </div>
             </div>
-            <h2 className='font-medium text-lg p-2'>₹65</h2>
+            <h2 className='font-medium text-lg p-2'>₹{fares.bike}</h2>
           </div>
-          <div className={`${rideType === 'auto' ? 'border-black' : 'border-white'} border-2 py-2 flex rounded-xl items-center justify-between`} onClick={() => setRideType('auto')}>
+          <div className={`${vehicleType === 'auto' ? 'border-black' : 'border-white'} border-2 py-2 flex rounded-xl items-center justify-between`} onClick={() => SetVehicleType('auto')}>
             <div className='flex items-center gap-2'>
               <img src="auto.webp" alt="car" className='h-13' />
               <div className='flex flex-col justify-center'>
@@ -214,11 +329,11 @@ const UserHome = () => {
                 <h4 className='text-sm font-medium text-gray-700'>3 min away</h4>
               </div>
             </div>
-            <h2 className='font-medium text-lg p-2'>₹107</h2>
+            <h2 className='font-medium text-lg p-2'>₹{fares.auto}</h2>
           </div>
           <button
             type="submit"
-            className='bg-black text-white px-4 py-2 rounded w-full active:bg-gray-800' onClick={() => { setRidePanel(false); setDriverSearchPanel(true) }}>Confirm</button>
+            className='bg-black text-white px-4 py-2 rounded w-full active:bg-gray-800' onClick={() => { setRidePanel(false); setDriverSearchPanel(true); createRide() }}>Confirm</button>
         </div>
         <div ref={driverSearchRef}
           className='bg-white rounded-t-2xl shadow-[0px_-5px_52px_2px_rgba(0,0,0,0.49)] flex flex-col gap-3 h-[0px] overflow-y-hidden'>
@@ -241,7 +356,7 @@ const UserHome = () => {
             </style>
           </div>
           <div className='flex items-center justify-center'>
-            <img src={`${rideType}.webp`} alt="" className='h-20'/>
+            <img src={`${vehicleType}.webp`} alt="" className='h-20' />
           </div>
           <div className='flex flex-col gap-2'>
             <div className='flex items-center gap-2'>
@@ -249,8 +364,8 @@ const UserHome = () => {
                 <i className="ri-map-pin-user-fill ri-xl"></i>
               </div>
               <div className='flex flex-col justify-center'>
-                <h3 className='text-base font-semibold '>{pickupObject?.name}</h3>
-                <p className='text-sm text-gray-700'>{pickupObject?.address}</p>
+                <h3 className='text-base font-semibold '>{pickupObject?.main_text}</h3>
+                <p className='text-sm text-gray-700'>{pickupObject?.secondary_text}</p>
               </div>
             </div>
             <div className='flex items-center gap-2'>
@@ -258,27 +373,59 @@ const UserHome = () => {
                 <i className="ri-map-pin-2-fill ri-xl"></i>
               </div>
               <div className='flex flex-col justify-center'>
-                <h3 className='text-base font-semibold '>{destinationObject?.name}</h3>
-                <p className='text-sm text-gray-700'>{destinationObject?.address}</p>
+                <h3 className='text-base font-semibold '>{destinationObject?.main_text}</h3>
+                <p className='text-sm text-gray-700'>{destinationObject?.secondary_text}</p>
               </div>
             </div>
             <div className='flex items-center gap-2'>
               <div>
-                <i className="ri-cash-line ri-xl"></i>  
+                <i className="ri-cash-line ri-xl"></i>
               </div>
               <div className='flex flex-col justify-center'>
-                <h3 className='text-base font-semibold '>₹143</h3>
+                <h3 className='text-base font-semibold '>₹{fares[vehicleType]}</h3>
               </div>
             </div>
           </div>
           <button
             type="button"
             className='bg-black text-white px-4 py-2 rounded w-full active:bg-gray-800' onClick={() => { setRidePanel(true); setDriverSearchPanel(false) }}>Cancel Search</button>
-          <Link to="/user-riding">
-            <button
-              type="button"
-              className='bg-black text-white px-4 py-2 rounded w-full active:bg-gray-800'>Driver Found</button>
-          </Link>
+        </div>
+        <div ref={rideConfirmedRef}
+          className='bg-white rounded-t-2xl shadow-[0px_-5px_52px_2px_rgba(0,0,0,0.49)] flex flex-col gap-4 overflow-y-hidden p-4 pb-8'>
+          <h2 className='text-xl font-semibold w-full text-center'>Ride Confirmed</h2>
+          <div className='flex justify-between'>
+            <img src={`${rideInfo?.vehicle}.webp`} alt={`${rideInfo?.vehicle}}`} className='h-20' />
+            <div>
+              <h1 className='text-right text-xl font-medium mb-1'>{rideInfo?.captain.fullname.firstName} {rideInfo?.captain.fullname.lastName}</h1>
+              <h3 className='text-2xl font-bold text-right mb-1'>{rideInfo?.captain.vehicle.number}</h3>
+              <h2 className='text-2xl flex justify-end gap-1 items-center'>
+                <span className='text-white bg-black flex px-2 rounded-sm'>{rideInfo?.otp[0]}</span>
+                <span className='text-white bg-black flex px-2 rounded-sm'>{rideInfo?.otp[1]}</span>
+                <span className='text-white bg-black flex px-2 rounded-sm'>{rideInfo?.otp[2]}</span>
+                <span className='text-white bg-black flex px-2 rounded-sm'>{rideInfo?.otp[3]}</span>
+              </h2>
+            </div>
+          </div>
+          <div>
+
+          </div>
+          <div className='flex items-center gap-2'>
+            <div>
+              <i className="ri-map-pin-2-fill ri-2x"></i>
+            </div>
+            <div className='flex flex-col justify-center'>
+              <h3 className='text-xl font-semibold '>{rideInfo?.destination.main_text}</h3>
+              <p className='text-gray-700'>{rideInfo?.destination.secondary_text}</p>
+            </div>
+          </div>
+          <div className='flex items-center gap-2'>
+            <div>
+              <i className="ri-cash-line ri-2x"></i>
+            </div>
+            <div className='flex flex-col justify-center'>
+              <h3 className='text-xl font-semibold '>₹{rideInfo?.fare}</h3>
+            </div>
+          </div>
         </div>
       </div>
     </div>

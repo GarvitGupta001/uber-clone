@@ -7,17 +7,18 @@
     "dev": "vite --host",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "postinstall": "flowbite-react patch"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
+    "@remixicon/react": "^4.6.0",
     "@tailwindcss/vite": "^4.1.10",
     "axios": "^1.10.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
     "remixicon": "^4.6.0",
+    "socket.io-client": "^4.8.1",
     "tailwindcss": "^4.1.10"
   },
   "devDependencies": {

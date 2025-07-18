@@ -23,11 +23,24 @@ const userSchema = new mongoose.Schema({
         required: [true, "Password is required"],
         select: false,
     },
-    sockeID: {
+    socketID: {
         type: String,
-
+    },
+    location: {
+        type: {
+            type: String,
+            enum: ['Point'],
+            required: true,
+            default: 'Point'
+        },
+        coordinates: {
+            type: [Number],
+            required: true
+        }
     }
 })
+
+userSchema.index({ location: '2dsphere' });
 
 userSchema.methods.generateAuthToken = function () {
     const token = jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
