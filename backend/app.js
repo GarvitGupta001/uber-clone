@@ -16,7 +16,10 @@ const app = express()
 connect()
 
 app.use(morgan('dev'))
-app.use(cors())
+app.use(cors({
+    origin: 'https://uber-clone-xi-bay.vercel.app',
+    credentials: true
+}))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
