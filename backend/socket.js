@@ -6,13 +6,13 @@ const rideModel = require('./models/ride.model')
 let io
 
 module.exports.initialiseSocketIO = (server) => {
-    io = socketIO(server), {
+    io = socketIO(server, {
         cors: {
             origin: 'https://uber-clone-xi-bay.vercel.app'
         },
         methods: ['GET', 'POST'],
         credentials: true
-    }
+    })
 
     io.on('connection', (socket) => {
         console.log(`Client connected with Socket Id ${socket.id}`)
