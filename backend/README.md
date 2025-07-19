@@ -196,7 +196,7 @@ Before running this project, make sure you have:
 - `GET /map/distance-time` - Get distance and time between locations (protected)
 - `GET /map/suggestions` - Get location suggestions (protected)
 
-For detailed API documentation, see [API Documentation](README.md).
+For detailed API documentation, see [API Documentation](endpoints-doc.md).
 
 ## Configuration
 
