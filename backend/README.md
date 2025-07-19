@@ -60,35 +60,35 @@ This backend serves as the server-side foundation for an Uber-like ride-sharing 
 ## Project Structure
 
 ```
-backend/
-├── controllers/           # Request handlers and business logic
+backend
+├── controllers
 │   ├── user.controller.js
 │   ├── captain.controller.js
 │   ├── ride.controller.js
 │   └── map.controller.js
-├── models/               # Database schemas and models
+├── models
 │   ├── user.model.js
 │   ├── captain.model.js
 │   ├── ride.model.js
 │   └── blacklistToken.model.js
-├── routes/               # API route definitions
+├── routes
 │   ├── user.routes.js
 │   ├── captain.routes.js
 │   ├── ride.routes.js
 │   └── map.routes.js
-├── services/             # Business logic and external API calls
+├── services
 │   ├── user.service.js
 │   ├── captain.service.js
 │   ├── ride.service.js
 │   └── map.service.js
-├── middlewares/          # Custom middleware functions
+├── middlewares
 │   └── auth.middleware.js
-├── utils/               # Utility functions
+├── utils
 │   └── db.utils.js
-├── app.js               # Express app configuration
-├── server.js            # Server initialization
-├── socket.js            # WebSocket configuration
-└── package.json         # Dependencies and scripts
+├── app.js
+├── server.js
+├── socket.js
+└── package.json
 ```
 
 ## Getting Started
